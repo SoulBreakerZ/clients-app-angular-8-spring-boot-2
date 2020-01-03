@@ -12,15 +12,16 @@ export class HeaderComponent implements OnInit {
   ngOnInit() {
   }
 
-  /**
-   * 
-   * 
-   * 
-   * @param nombre 
-   */
-  invocarServicios(nombre:string){
+
+  initServices(nombre:string){
 
   }
+
+  items: any[] = [
+    {name:'Clients JSON DATA',link:'/clients-json-data'},
+    {name:'Clients HTTP REQUEST',link:'/clients'},
+  ];
+ 
 
 
 }

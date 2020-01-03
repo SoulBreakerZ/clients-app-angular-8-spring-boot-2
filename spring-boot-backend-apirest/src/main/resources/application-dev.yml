@@ -1,0 +1,40 @@
+server:
+  servlet:
+    context-path: /allure-menu/api/rest
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost/clientes_app?useSSL=false
+    username: sa
+    password: sa
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL57Dialect
+    hibernate:
+      ddl-auto: none
+    generate-ddl: false
+
+  data:
+    web:
+      pageable:
+        size-parameter: size
+        page-parameter: page
+        default-page-size: 10
+        one-indexed-parameters: false
+        max-page-size: 2000
+        prefix:
+        qualifier-delimiter: _
+  liquibase:
+    change-log: classpath:/changelog/changelog-master.xml
+    user: user_arkontec_dev
+    password: user_arkontec_dev
+    enabled: false
+
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: debug

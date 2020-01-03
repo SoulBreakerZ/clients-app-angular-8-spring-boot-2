@@ -1,0 +1,23 @@
+- changeSet:
+  id: 1.0/7
+  author: stivlo
+  comment: "Some comments go here"
+  changes:
+    - insert:
+      tableName: my_table
+      columns:
+        - column:
+          name: id
+          value: "1"
+            - column:
+                name: name
+                value: "One"
+                  - insert:
+                tableName: my_table
+                columns:
+                  - column:
+                name: id
+                value: "2"
+                  - column:
+                name: name
+                value: "Two"

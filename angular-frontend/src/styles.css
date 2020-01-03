@@ -6,3 +6,7 @@ body {
 .flex-grow {
   flex: 1;
 }
+
+.square {
+  border-radius: 0 !important;
+}
