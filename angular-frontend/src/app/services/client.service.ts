@@ -3,10 +3,12 @@ import { CLIENTS } from '../seeder/clientes.json.js';
 import { Client } from '../models/client';
 import { Observable, of, throwError } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpRequest, HttpEvent } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
 import { Router } from '@angular/router';
 import { formatDate } from '@angular/common';
+import { Page } from '../models/page';
+import { Region } from '../models/region.js';
 
 @Injectable({
   providedIn: 'root'
@@ -17,8 +19,7 @@ export class ClientService {
   private urlEndPoint: string = 'http://localhost:8080/api/client';
 
 
-  constructor(private http: HttpClient, private toastrService: ToastrService, private router: Router) {
-  }
+  constructor(private http: HttpClient, private toastrService: ToastrService, private router: Router) { }
 
   getClientsByJsonFile(): Client[] {
     return CLIENTS;
@@ -30,7 +31,7 @@ export class ClientService {
 
   findAll(): Observable<Client[]> {
     return this.http.get<Client[]>(this.urlEndPoint).pipe(
-      tap(response  => {
+      tap(response => {
         console.log('ClientService: tap 1');
         (response as Client[]).forEach(client => {
           console.log(client.name);
@@ -51,6 +52,29 @@ export class ClientService {
         (response).forEach(client => {
           console.log(client.name);
         });
+      })
+    );
+  }
+
+  findAllPageable(page: number): Observable<Page<Client>> {
+    return this.http.get<Page<Client>>(`${this.urlEndPoint}/page/${page}`).pipe(
+      tap(response => {
+        console.log('ClientService: tap 1');
+        (response.content as Client[]).forEach(client => {
+          console.log(client.name);
+        });
+      }),
+      map(response => {
+        const page = response as Page<Client>;
+        page.content.map(client => {
+          client.name = client.name.toUpperCase();
+          //client.createdDate = formatDate(client.createdDate, 'dd/MM/yyyy', 'en-US');
+          //client.createdDate = formatDate(client.createdDate, 'EEEE dd, MMMM yyyy', 'es');
+          //client.createdDate = formatDate(client.createdDate, 'fullDate', 'es');
+          //client.createdDate = new DatePipe('en-US').transform(client.createdDate,'dd/MM/yyyy');
+          return client;
+        });
+        return page;
       }),
     );
   }
@@ -105,4 +129,36 @@ export class ClientService {
         return throwError(e);
       }));
   }
+
+  uploadImage(file: File, id): Observable<HttpEvent<{}>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('id', id);
+
+    const req = new HttpRequest('POST', `${this.urlEndPoint}/upload/`, formData, {
+      reportProgress: true
+    });
+
+    return this.http.request(req);
+
+    // pipe(
+    //   map((response: any) => response.client as Client),
+    //   catchError(e => {
+
+    //     if (e.status === 400) {
+    //       return throwError(e);
+    //     }
+
+    //     console.error(e.error.message);
+    //     this.toastrService.error(`Backend with error: ${e.error.message},${e.error.error}`, 'Upload image client operation');
+    //     return throwError(e);
+    //   })
+    // );
+  }
+
+
+  getRegions(): Observable<Region[]> {
+    return this.http.get<Region[]>(this.urlEndPoint + '/region');
+  }
+
 }

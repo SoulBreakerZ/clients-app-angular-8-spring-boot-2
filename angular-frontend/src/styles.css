@@ -10,3 +10,16 @@ body {
 .square {
   border-radius: 0 !important;
 }
+
+.hand-disabled {
+  cursor: default;
+}
+
+.img-profile{
+  width: 64px;
+  cursor: pointer;
+}
+
+.file-upload{
+  cursor: pointer;
+}

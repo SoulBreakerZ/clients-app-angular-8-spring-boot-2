@@ -2,8 +2,11 @@ package com.arkontec.springbootbackendapirest.services.impl;
 
 import com.arkontec.springbootbackendapirest.data.DAOClient;
 import com.arkontec.springbootbackendapirest.data.entities.Client;
+import com.arkontec.springbootbackendapirest.data.entities.Region;
 import com.arkontec.springbootbackendapirest.services.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -18,6 +21,11 @@ public class ClientServiceImpl implements ClientService{
     @Transactional(readOnly = true)
     public List<Client> findAll() {
         return (List<Client>) daoClient.findAll();
+    }
+
+    @Override
+    public Page<Client> findAll(Pageable pageable) {
+        return daoClient.findAll(pageable);
     }
 
     @Override
@@ -36,5 +44,11 @@ public class ClientServiceImpl implements ClientService{
     @Transactional
     public void deleteById(Long id) {
         daoClient.deleteById(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Region> findAllRegions() {
+        return (List<Region>) daoClient.findAllRegions();
     }
 }

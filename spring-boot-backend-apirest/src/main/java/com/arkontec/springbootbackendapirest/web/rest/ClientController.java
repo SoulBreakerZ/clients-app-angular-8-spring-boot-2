@@ -1,19 +1,31 @@
 package com.arkontec.springbootbackendapirest.web.rest;
 
 import com.arkontec.springbootbackendapirest.data.entities.Client;
+import com.arkontec.springbootbackendapirest.data.entities.Region;
 import com.arkontec.springbootbackendapirest.services.ClientService;
+import com.arkontec.springbootbackendapirest.services.UploadFileService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 
 @RestController
 @RequestMapping("/client")
@@ -23,10 +35,21 @@ public class ClientController {
     @Autowired
     private ClientService clientService;
 
+    @Autowired
+    private UploadFileService uploadFileService;
+
+    private final Logger LOGGER = LogManager.getLogger(ClientController.class);
+
     @GetMapping
     public List<Client> findAll() {
         return this.clientService.findAll();
     }
+
+    @GetMapping("/page/{page}")
+    public Page<Client> findAll(@PathVariable Integer page) {
+        return this.clientService.findAll(PageRequest.of(page,4));
+    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<?> findById(@PathVariable Long id) {
@@ -98,7 +121,14 @@ public class ClientController {
         }
 
         try {
-            clientUpdated = clientService.save(client);
+            // Esto se hace asi por mientras pero como codigo es ineficinete y repetitivo deberia preguntar si el objeto
+            // client que llega con parametros tienes cambios con respecto  al objeto currentClient
+            currentClient.setName(client.getName());
+            currentClient.setLastName(client.getLastName());
+            currentClient.setCreatedDate(client.getCreatedDate());
+            currentClient.setEmail(client.getEmail());
+            currentClient.setRegion(client.getRegion());
+            clientUpdated = clientService.save(currentClient);
         }catch (DataAccessException e){
             response.put("message","error when insert to the database.");
             response.put("error",e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
@@ -116,6 +146,8 @@ public class ClientController {
         Map<String, Object> response = new HashMap<>();
 
         try {
+            Client client = this.clientService.findById(id);
+            this.uploadFileService.deleteImage(client.getImage());
             this.clientService.deleteById(id);
         }catch (DataAccessException e){
             response.put("message","error when insert to the database.");
@@ -126,4 +158,59 @@ public class ClientController {
         response.put("message","Client has been deleted with success.");
         return new ResponseEntity<Map<String, Object>>(response,HttpStatus.NO_CONTENT);
     }
+
+    @PostMapping("/upload")
+    public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file,@RequestParam("id") Long id){
+
+        Map<String, Object> response = new HashMap<>();
+        Client client = this.clientService.findById(id);
+
+        if(!file.isEmpty()){
+
+            String filename = null;
+            try {
+                filename = this.uploadFileService.imageCopy(file);
+            } catch (IOException e) {
+                response.put("message","error when upload file." + filename);
+                response.put("error",e.getMessage().concat(": ").concat(e.getMessage()));
+                return new ResponseEntity<Map<String, Object>>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+            this.uploadFileService.deleteImage(client.getImage());
+
+            client.setImage(filename);
+            clientService.save(client);
+            response.put("client",client);
+            response.put("message","File image has associated with client successfully.");
+
+            return new ResponseEntity<Map<String, Object>>(response,HttpStatus.CREATED);
+        }
+
+        response.put("message","File image is empty.");
+        return new ResponseEntity<Map<String, Object>>(response,HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/upload/img/{imageName:.+}")
+    public ResponseEntity<Resource> viewImage(@PathVariable String imageName){
+        Resource resource = null;
+        try {
+            resource = this.uploadFileService.loadImage(imageName);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        HttpHeaders header = new HttpHeaders();
+        header.add(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\"" + resource.getFilename() + "\"");
+
+        return new ResponseEntity<Resource>(resource,header,HttpStatus.OK);
+    }
+
+
+    @GetMapping("/region")
+    public List<Region> findAllRegions() {
+        return this.clientService.findAllRegions();
+    }
+
+
+
 }

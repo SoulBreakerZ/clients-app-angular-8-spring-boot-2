@@ -1,0 +1,42 @@
+<div class="modal-header">
+  <h4 class="modal-title pull-left">{{title}}</h4>
+  <button type="button" class="close pull-right" aria-label="Close" (click)="viewModal.hide()">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+<div class="modal-body question-modal-body">
+  <div class="container">
+    <div class="row">
+      <div class="col-sm">
+        <ul *ngIf="selectedClient" class="list-group text-dark mb-3">
+          <li class="list-group-item active">{{selectedClient.name}}</li>
+          <li class="list-group-item">{{selectedClient.lastName}}</li>
+          <li class="list-group-item">{{selectedClient.email}}</li>
+          <li class="list-group-item">{{selectedClient.createdDate | date:'fullDate'}}</li>
+          <li class="list-group-item">{{selectedClient.region.name}}</li>
+        </ul>
+        <div class="input-group square mb-3">
+          <div class="custom-file">
+            <input (change)='selectImage($event)' value="Browse image" type="file" class="custom-file-input square file-upload"
+              id="inputGroupFile04" aria-describedby="inputGroupFileAddon04" accept='image/*'>
+            <label class="custom-file-label" for="inputGroupFile04">Choose image</label>
+          </div>
+          <div class="input-group-append square">
+            <button (click)="uploadImage()" class="btn btn-outline-secondary square" type="button"
+              id="inputGroupFileAddon04" [disabled]='!imageSelected '>Upload image</button>
+          </div>
+        </div>
+        <div class="progress" style="height: 3em;">
+          <div [ngStyle]="{width: progress+'%'}"
+            [ngClass]="progress > 0 && progress < 100 ? 'progress-bar progress-bar-striped progress-bar-animated' : 'progress-bar progress-bar-striped'"
+            role="progressbar" attr.aria-valuenow="{{progress}}" aria-valuemin="0" aria-valuemax="100">
+            {{progress}}%
+          </div>
+        </div>
+      </div>
+      <div class="col-sm">
+        <img *ngIf="selectedClient?.image" src="http://localhost:8080/api/client/upload/img/{{selectedClient.image}}"
+          alt="{{selectedClient.image}}" class="img-thumbnail rounded">
+      </div>
+    </div>
+  </div>

@@ -1,8 +1,11 @@
 package com.arkontec.springbootbackendapirest.data.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -28,15 +31,24 @@ public class Client implements Serializable {
     @NotEmpty
     @Email
     @Size(min=3,max=100)
-    @Column(nullable = false)
+    @Column(nullable = false,unique = false)
     private String email;
 
+    @NotNull
     private LocalDate createdDate;
 
-    @PrePersist
-    public void prePersist(){
-        this.setCreatedDate(LocalDate.now());
-    }
+    private String image;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "region_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer","handler"})
+    private Region region;
+
+    //@PrePersist
+    //public void prePersist(){
+    //    this.setCreatedDate(LocalDate.now());
+    //}
 
     public Long getId() {
         return id;
@@ -76,5 +88,21 @@ public class Client implements Serializable {
 
     public void setCreatedDate(LocalDate createdDate) {
         this.createdDate = createdDate;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public Region getRegion() {
+        return region;
+    }
+
+    public void setRegion(Region region) {
+        this.region = region;
     }
 }

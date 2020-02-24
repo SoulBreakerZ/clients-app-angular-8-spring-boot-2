@@ -20,6 +20,7 @@ export class HeaderComponent implements OnInit {
   items: any[] = [
     {name:'Clients JSON DATA',link:'/clients-json-data'},
     {name:'Clients HTTP REQUEST',link:'/clients'},
+    {name:'Clients HTTP REQUEST With pagination',link:'/clients-page'}
   ];
  
 

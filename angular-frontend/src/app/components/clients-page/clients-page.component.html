@@ -1,0 +1,45 @@
+<div class="card border-primary mb-3" >
+    <div class="card-header">Clients</div>
+    <div class="card-body text-primary">
+      <h5 class="card-title">Client List</h5>
+      <div class="my-2 text-left">
+        <button class="btn square btn-primary" type="button" [routerLink]="['/clients-page/form-page']">Create client</button>
+      </div>
+      <div class="alert alert-info" *ngIf="clients == null || clients?.length == 0">No registry found in database.</div>
+      <table class="table table-bordered table-striped" *ngIf="clients?.length > 0">
+        <thead>
+          <tr>
+            <th>Profile</th>
+            <th>Name</th>
+            <th>Last Name</th>
+            <th>Email</th>
+            <th>Created Date</th>
+            <th colspan="2">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let client of clients">
+            <td scope="row">
+              <img *ngIf="client?.image" (click)="openProfile(client)" src="http://localhost:8080/api/client/upload/img/{{client.image}}" alt="{{client.image}}" class="img-thumbnail rounded img-profile">
+              <img *ngIf="!client?.image" (click)="openProfile(client)" src="http://localhost:8080/api/img/default-profile.png" alt="Default Profile" class="img-thumbnail rounded img-profile">
+            </td>
+            <td>{{client.name}}</td>
+            <td>{{client.lastName | uppercase }}</td>
+            <td>{{client.email}}</td>
+            <td>{{client.createdDate | date: "EEEE dd, MMMM yyyy"}}</td>
+            <td><button type="button" [routerLink]="['/clients-page/form-page',client.id]" class="btn btn-primary square">Edit</button></td>
+            <td><button type="button" class="btn btn-danger square" (click)="openModalDelete(template,client)">Delete</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <paginator-nav *ngIf="paginator" [paginator]="paginator"></paginator-nav>
+    </div>
+  </div>
+  
+  <ng-template #template>
+    <div class="modal-body text-center">
+      <p>Do you want to confirm?</p>
+      <button type="button" class="btn btn-default" (click)="confirmDelete()">Yes</button>
+      <button type="button" class="btn btn-primary" (click)="modalRef.hide()">No</button>
+    </div>
+  </ng-template>
