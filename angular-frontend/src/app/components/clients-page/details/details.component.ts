@@ -5,6 +5,9 @@ import { ActivatedRoute } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { HttpEventType } from '@angular/common/http';
 import { BsModalRef } from 'ngx-bootstrap';
+import { throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-details',
@@ -21,7 +24,8 @@ export class DetailsComponent implements OnInit {
 
   saved: EventEmitter<any> = new EventEmitter();
 
-  constructor(private clientService: ClientService, private toastrService: ToastrService, public viewModal: BsModalRef) { }
+  constructor(private clientService: ClientService, private toastrService: ToastrService, 
+            public viewModal: BsModalRef,private authService:AuthService) { }
 
   ngOnInit() {
     console.info(this.selectedClient);
@@ -44,6 +48,12 @@ export class DetailsComponent implements OnInit {
       this.toastrService.info('Error when select image', 'You must select an image');
     } else {
       this.clientService.uploadImage(this.imageSelected, this.selectedClient.id)
+        .pipe(
+          catchError(e => {
+            this.viewModal.hide()
+            return throwError(e);
+          })
+        )
         .subscribe(event => {
 
           switch (event.type) {

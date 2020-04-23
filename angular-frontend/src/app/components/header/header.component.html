@@ -17,19 +17,32 @@
         <a class="nav-link" routerLink="/ejemplofor">Ejemplo for</a>
       </li>
 
+      <!--
       <li class="nav-item dropdown" dropdown>
-        <a href id="basic-link" dropdownToggle (click)="false"
-           aria-controls="basic-link-dropdown" class="nav-link dropdown-toggle">Clients modules</a>
-        <ul id="basic-link-dropdown" *dropdownMenu class="dropdown-menu"
-            role="menu" aria-labelledby="basic-link">
+        <a href id="basic-link" dropdownToggle (click)="false" aria-controls="basic-link-dropdown"
+          class="nav-link dropdown-toggle">Clients modules</a>
+        <ul id="basic-link-dropdown" *dropdownMenu class="dropdown-menu" role="menu" aria-labelledby="basic-link">
           <li *ngFor="let choice of items">
             <a class="dropdown-item" [routerLink]="choice.link" [routerLinkActive]="active">{{choice.name}}</a>
           </li>
         </ul>
-      </li>
+      </li>-->
       <li class="nav-item">
         <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
       </li>
+    </ul>
+    <ul class="navbar-nav navbar-right ">
+      <li *ngIf="!authService.isAuthenticated()"><a [routerLink]="['auth/login']" class="btn btn-outline-primary">Sign
+          In</a></li>
+
+      <li class="nav-item dropdown" *ngIf="authService.isAuthenticated()" dropdown>
+        <a href id="basic-link" dropdownToggle (click)="false" aria-controls="basic-link-dropdown"
+          class="nav-link dropdown-toggle">{{authService.user.username}}</a>
+        <ul id="basic-link-dropdown" *dropdownMenu class="dropdown-menu" role="menu" aria-labelledby="basic-link">
+            <button (click)="logout()" class="dropdown-item" type="submit">Sign out</button>
+        </ul>
+      </li>
+
     </ul>
   </div>
 </nav>

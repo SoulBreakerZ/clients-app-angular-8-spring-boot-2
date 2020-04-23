@@ -27,6 +27,7 @@ import { BsDatepickerModule, BsLocaleService } from 'ngx-bootstrap/datepicker';
 import { defineLocale } from 'ngx-bootstrap/chronos';
 import { esLocale } from 'ngx-bootstrap/locale';
 import { DetailsComponent } from './components/clients-page/details/details.component';
+import { LoginComponent } from './components/auth/login/login.component';
 
 @NgModule({
   declarations: [
@@ -41,7 +42,8 @@ import { DetailsComponent } from './components/clients-page/details/details.comp
     ClientsPageComponent,
     FormPageComponent,
     PaginatorComponent,
-    DetailsComponent
+    DetailsComponent,
+    LoginComponent
   ],
   imports: [
     BrowserModule,

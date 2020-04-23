@@ -8,7 +8,8 @@ import { ToastrService } from 'ngx-toastr';
 import { Router } from '@angular/router';
 import { formatDate } from '@angular/common';
 import { Page } from '../models/page';
-import { Region } from '../models/region.js';
+import { Region } from '../models/region';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -18,8 +19,32 @@ export class ClientService {
   private httpHeaders = new HttpHeaders({ 'Content-Type': 'application/json' });
   private urlEndPoint: string = 'http://localhost:8080/api/client';
 
+  constructor(private http: HttpClient, private toastrService: ToastrService, private router: Router, private authService: AuthService) { }
 
-  constructor(private http: HttpClient, private toastrService: ToastrService, private router: Router) { }
+  private addAuthorizationHeader() {
+    let token = this.authService.token;
+    if (token != null) {
+      return this.httpHeaders.append('Authorization', 'Bearer ' + token);
+    }
+    return this.httpHeaders;
+  }
+
+  private isAuthorized(e): boolean {
+    if (e.status == 401) {
+      if (this.authService.isAuthenticated()) {
+        this.authService.logout();
+      }
+      this.router.navigate(['/auth/login']);
+      return true;
+    }
+
+    if (e.status == 403) {
+      this.toastrService.error(`Hello ${this.authService.user.username} you can't access this resource`, 'Access Denied');
+      this.router.navigate(['/clients-page']);
+      return true;
+    }
+    return false;
+  }
 
   getClientsByJsonFile(): Client[] {
     return CLIENTS;
@@ -31,12 +56,12 @@ export class ClientService {
 
   findAll(): Observable<Client[]> {
     return this.http.get<Client[]>(this.urlEndPoint).pipe(
-      tap(response => {
-        console.log('ClientService: tap 1');
-        (response as Client[]).forEach(client => {
-          console.log(client.name);
-        });
-      }),
+      // tap(response => {
+      //   console.log('ClientService: tap 1');
+      //   (response as Client[]).forEach(client => {
+      //     console.log(client.name);
+      //   });
+      // }),
       map(response =>
         (response as Client[]).map(client => {
           client.name = client.name.toUpperCase();
@@ -47,23 +72,23 @@ export class ClientService {
           return client;
         })
       ),
-      tap(response => {
-        console.log('ClientService: tap 2');
-        (response).forEach(client => {
-          console.log(client.name);
-        });
-      })
+      // tap(response => {
+      //   console.log('ClientService: tap 2');
+      //   (response).forEach(client => {
+      //     console.log(client.name);
+      //   });
+      // })
     );
   }
 
   findAllPageable(page: number): Observable<Page<Client>> {
     return this.http.get<Page<Client>>(`${this.urlEndPoint}/page/${page}`).pipe(
-      tap(response => {
-        console.log('ClientService: tap 1');
-        (response.content as Client[]).forEach(client => {
-          console.log(client.name);
-        });
-      }),
+      // tap(response => {
+      //   console.log('ClientService: tap 1');
+      //   (response.content as Client[]).forEach(client => {
+      //     console.log(client.name);
+      //   });
+      // }),
       map(response => {
         const page = response as Page<Client>;
         page.content.map(client => {
@@ -80,21 +105,30 @@ export class ClientService {
   }
 
   findById(id: number): Observable<Client> {
-    return this.http.get<Client>(`${this.urlEndPoint}/${id}`)
-      .pipe(catchError(e => {
-        this.router.navigate(['/clients']);
+    return this.http.get<Client>(`${this.urlEndPoint}/${id}`, { headers: this.addAuthorizationHeader() }).pipe(
+      catchError(e => {
+
+        if (this.isAuthorized(e)) {
+          return throwError(e);
+        }
+
+        this.router.navigate(['/clients-page']);
         console.error(e.error.message);
-        this.toastrService.error(`Client operation in backend with error: ${e.error.message}`, 'Delete operation');
+        this.toastrService.error(`Client operation in backend with error: ${e.error.message}`, 'Find By ID operation');
         return throwError(e);
       }))
       ;
   }
 
   create(client: Client): Observable<Client> {
-    return this.http.post<Client>(this.urlEndPoint, client, { headers: this.httpHeaders })
+    return this.http.post<Client>(this.urlEndPoint, client, { headers: this.addAuthorizationHeader() })
       .pipe(
         map((response: any) => response as Client),
         catchError(e => {
+
+          if (this.isAuthorized(e)) {
+            return throwError(e);
+          }
 
           if (e.status === 400) {
             return throwError(e);
@@ -108,8 +142,12 @@ export class ClientService {
   }
 
   update(client: Client): Observable<Client> {
-    return this.http.put<Client>(`${this.urlEndPoint}/${client.id}`, client, { headers: this.httpHeaders })
+    return this.http.put<Client>(`${this.urlEndPoint}/${client.id}`, client, { headers: this.addAuthorizationHeader() })
       .pipe(catchError(e => {
+
+        if (this.isAuthorized(e)) {
+          return throwError(e);
+        }
 
         if (e.status === 400) {
           return throwError(e);
@@ -122,8 +160,13 @@ export class ClientService {
   }
 
   deleteById(id: number): Observable<Client> {
-    return this.http.delete<Client>(`${this.urlEndPoint}/${id}`)
+    return this.http.delete<Client>(`${this.urlEndPoint}/${id}`, { headers: this.addAuthorizationHeader() })
       .pipe(catchError(e => {
+
+        if (this.isAuthorized(e)) {
+          return throwError(e);
+        }
+
         console.error(e.error.message);
         this.toastrService.error(`Client operation in backend with error: ${e.error.message},${e.error.error}`, 'Delete operation');
         return throwError(e);
@@ -135,11 +178,24 @@ export class ClientService {
     formData.append('file', file);
     formData.append('id', id);
 
+    let httpHeaders = new HttpHeaders();
+    const token = this.authService.token;
+    if (token != null) {
+      httpHeaders = httpHeaders.append('Authorization', `Bearer ${token}`);
+    }
+
     const req = new HttpRequest('POST', `${this.urlEndPoint}/upload/`, formData, {
-      reportProgress: true
+      reportProgress: true,
+      headers: httpHeaders
     });
 
-    return this.http.request(req);
+    return this.http.request(req)
+      .pipe(
+        catchError(e => {
+          this.isAuthorized(e);
+          return throwError(e);
+        })
+      );
 
     // pipe(
     //   map((response: any) => response.client as Client),
@@ -158,7 +214,12 @@ export class ClientService {
 
 
   getRegions(): Observable<Region[]> {
-    return this.http.get<Region[]>(this.urlEndPoint + '/region');
+    return this.http.get<Region[]>(this.urlEndPoint + '/region', { headers: this.addAuthorizationHeader() }).pipe(
+      catchError(e => {
+        this.isAuthorized(e);
+        return throwError(e);
+      })
+    );
   }
 
 }

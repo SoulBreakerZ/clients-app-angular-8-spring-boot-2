@@ -1,4 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { AuthService } from 'src/app/services/auth.service';
+import { ToastrService } from 'ngx-toastr';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-header',
@@ -7,10 +10,12 @@ import { Component, OnInit } from '@angular/core';
 })
 export class HeaderComponent implements OnInit {
 
-  constructor() { }
 
-  ngOnInit() {
+  constructor(private toastrService: ToastrService, private authService: AuthService, private router: Router) {
+
   }
+
+  ngOnInit() {}
 
 
   initServices(nombre:string){
@@ -24,5 +29,10 @@ export class HeaderComponent implements OnInit {
   ];
  
 
+  logout():void{
+    this.authService.logout();
+    this.router.navigate(['/auth/login']);
+    this.toastrService.info('Your session han been closed with success.', 'Close session')
+  }
 
 }

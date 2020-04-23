@@ -7,6 +7,7 @@ import { tap } from 'rxjs/operators';
 import { Page } from 'src/app/models/page';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DetailsComponent } from './details/details.component';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-clients-page',
@@ -29,6 +30,7 @@ export class ClientsPageComponent implements OnInit {
     private toastrService: ToastrService,
     private modalService: BsModalService,
     private router: Router,
+    private authService:AuthService,
     private activatedRoute: ActivatedRoute) { }
 
   ngOnInit() {
@@ -53,16 +55,16 @@ export class ClientsPageComponent implements OnInit {
   }
 
   confirmDelete(): void {
-    this.deleteModal.hide();
     this.deleteClientById();
   }
 
   private deleteClientById(): void {
-    this.clientService.deleteById(this.selectedClient.id)
-      .subscribe(
-        (client) => {
+    this.clientService
+      .deleteById(this.selectedClient.id)
+      .subscribe((client) => {
           this.clients = this.clients.filter(client => client !== this.selectedClient);
           this.toastrService.info(`Client has been deleted`, 'Delete operation');
+          this.deleteModal.hide();
         }
       );
   }
@@ -73,16 +75,16 @@ export class ClientsPageComponent implements OnInit {
 
     const initialState = {
       selectedClient: this.selectedClient
-     };
+    };
 
     this.viewModal = this.modalService.show(DetailsComponent, {
       initialState,
       animated: true,
-      class: 'modal-lg'
+      class: 'modal-lg',
     });
-    this.viewModal.content.saved.subscribe(client=>{
-      this.clients = this.clients.map(modifiedClient =>{
-        if(client.id === modifiedClient.id){
+    this.viewModal.content.saved.subscribe((client: Client) => {
+      this.clients = this.clients.map(modifiedClient => {
+        if (client.id === modifiedClient.id) {
           modifiedClient.image = client.image;
         }
         return modifiedClient;

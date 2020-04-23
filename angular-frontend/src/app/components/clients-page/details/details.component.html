@@ -15,7 +15,7 @@
           <li class="list-group-item">{{selectedClient.createdDate | date:'fullDate'}}</li>
           <li class="list-group-item">{{selectedClient.region.name}}</li>
         </ul>
-        <div class="input-group square mb-3">
+        <div class="input-group square mb-3" *ngIf="authService.hasRole('ROLE_ADMIN')">
           <div class="custom-file">
             <input (change)='selectImage($event)' value="Browse image" type="file" class="custom-file-input square file-upload"
               id="inputGroupFile04" aria-describedby="inputGroupFileAddon04" accept='image/*'>
@@ -26,7 +26,7 @@
               id="inputGroupFileAddon04" [disabled]='!imageSelected '>Upload image</button>
           </div>
         </div>
-        <div class="progress" style="height: 3em;">
+        <div class="progress" style="height: 3em;" *ngIf="authService.hasRole('ROLE_ADMIN')">
           <div [ngStyle]="{width: progress+'%'}"
             [ngClass]="progress > 0 && progress < 100 ? 'progress-bar progress-bar-striped progress-bar-animated' : 'progress-bar progress-bar-striped'"
             role="progressbar" attr.aria-valuenow="{{progress}}" aria-valuemin="0" aria-valuemax="100">

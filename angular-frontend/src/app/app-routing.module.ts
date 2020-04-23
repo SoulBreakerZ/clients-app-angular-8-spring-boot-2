@@ -7,7 +7,9 @@ import { EjemploForComponent } from './components/ejemplo-for/ejemplo-for.compon
 import { FormComponent } from './components/clients/form.component';
 import { ClientsPageComponent } from './components/clients-page/clients-page.component';
 import { FormPageComponent } from './components/clients-page/form-page.component';
-import { DetailsComponent } from './components/clients-page/details/details.component';
+import { LoginComponent } from './components/auth/login/login.component';
+import { AuthGuard } from './guards/auth.guard';
+import { RoleGuard } from './guards/role.guard';
 
 const routes: Routes = [
   { path: '', redirectTo: '/clients-page', pathMatch: 'full' },
@@ -19,8 +21,9 @@ const routes: Routes = [
   { path: 'ejemplofor', component: EjemploForComponent },
   { path: 'clients-page', component: ClientsPageComponent },
   { path: 'clients-page/page/:page', component: ClientsPageComponent },
-  { path: 'clients-page/form-page', component: FormPageComponent },
-  { path: 'clients-page/form-page/:id', component: FormPageComponent }
+  { path: 'clients-page/form-page', component: FormPageComponent, canActivate: [AuthGuard, RoleGuard], data: { role: 'ROLE_ADMIN' } },
+  { path: 'clients-page/form-page/:id', component: FormPageComponent, canActivate: [AuthGuard, RoleGuard], data: { role: 'ROLE_ADMIN' } },
+  { path: 'auth/login', component: LoginComponent }
 ];
 
 @NgModule({
