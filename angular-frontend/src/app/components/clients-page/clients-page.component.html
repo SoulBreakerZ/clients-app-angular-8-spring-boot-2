@@ -28,8 +28,8 @@
             <td>{{client.lastName | uppercase }}</td>
             <td>{{client.email}}</td>
             <td>{{client.createdDate | date: "EEEE dd, MMMM yyyy"}}</td>
-            <td  ><button type="button" [routerLink]="['/clients-page/form-page',client.id]" class="btn btn-primary square">Edit</button></td>
-            <td ><button type="button" class="btn btn-danger square" (click)="openModalDelete(template,client)">Delete</button></td>
+            <td *ngIf="authService.hasRole('ROLE_ADMIN')"><button type="button" [routerLink]="['/clients-page/form-page',client.id]" class="btn btn-primary square">Edit</button></td>
+            <td *ngIf="authService.hasRole('ROLE_ADMIN')"><button type="button" class="btn btn-danger square" (click)="openModalDelete(template,client)">Delete</button></td>
           </tr>
         </tbody>
       </table>
