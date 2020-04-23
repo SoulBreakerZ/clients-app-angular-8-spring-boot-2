@@ -19,32 +19,10 @@ export class ClientService {
   private httpHeaders = new HttpHeaders({ 'Content-Type': 'application/json' });
   private urlEndPoint: string = 'http://localhost:8080/api/client';
 
-  constructor(private http: HttpClient, private toastrService: ToastrService, private router: Router, private authService: AuthService) { }
+  constructor(private http: HttpClient, private router: Router, private toastrService: ToastrService) { }
 
-  private addAuthorizationHeader() {
-    let token = this.authService.token;
-    if (token != null) {
-      return this.httpHeaders.append('Authorization', 'Bearer ' + token);
-    }
-    return this.httpHeaders;
-  }
 
-  private isAuthorized(e): boolean {
-    if (e.status == 401) {
-      if (this.authService.isAuthenticated()) {
-        this.authService.logout();
-      }
-      this.router.navigate(['/auth/login']);
-      return true;
-    }
 
-    if (e.status == 403) {
-      this.toastrService.error(`Hello ${this.authService.user.username} you can't access this resource`, 'Access Denied');
-      this.router.navigate(['/clients-page']);
-      return true;
-    }
-    return false;
-  }
 
   getClientsByJsonFile(): Client[] {
     return CLIENTS;
@@ -105,36 +83,26 @@ export class ClientService {
   }
 
   findById(id: number): Observable<Client> {
-    return this.http.get<Client>(`${this.urlEndPoint}/${id}`, { headers: this.addAuthorizationHeader() }).pipe(
+    return this.http.get<Client>(`${this.urlEndPoint}/${id}`).pipe(
       catchError(e => {
-
-        if (this.isAuthorized(e)) {
-          return throwError(e);
+        if(e.status != 401 && e.error.message){
+          this.router.navigate(['/clients-page']);
+          console.error(e.error.message);
+          this.toastrService.error(`Client operation in backend with error: ${e.error.message}`, 'Find By ID operation');
         }
-
-        this.router.navigate(['/clients-page']);
-        console.error(e.error.message);
-        this.toastrService.error(`Client operation in backend with error: ${e.error.message}`, 'Find By ID operation');
         return throwError(e);
       }))
       ;
   }
 
   create(client: Client): Observable<Client> {
-    return this.http.post<Client>(this.urlEndPoint, client, { headers: this.addAuthorizationHeader() })
+    return this.http.post<Client>(this.urlEndPoint, client)
       .pipe(
         map((response: any) => response as Client),
         catchError(e => {
-
-          if (this.isAuthorized(e)) {
-            return throwError(e);
+          if(e.error.message){
+            console.error(e.error.message);
           }
-
-          if (e.status === 400) {
-            return throwError(e);
-          }
-
-          console.error(e.error.message);
           this.toastrService.error(`Client operation in backend with error: ${e.error.message},${e.error.error}`, 'Create operation');
           return throwError(e);
         })
@@ -142,32 +110,22 @@ export class ClientService {
   }
 
   update(client: Client): Observable<Client> {
-    return this.http.put<Client>(`${this.urlEndPoint}/${client.id}`, client, { headers: this.addAuthorizationHeader() })
+    return this.http.put<Client>(`${this.urlEndPoint}/${client.id}`, client)
       .pipe(catchError(e => {
-
-        if (this.isAuthorized(e)) {
-          return throwError(e);
+        if(e.error.message){
+          console.error(e.error.message);
         }
-
-        if (e.status === 400) {
-          return throwError(e);
-        }
-
-        console.error(e.error.message);
         this.toastrService.error(`Client operation in backend with error: ${e.error.message},${e.error.error}`, 'Update operation');
         return throwError(e);
       }));
   }
 
   deleteById(id: number): Observable<Client> {
-    return this.http.delete<Client>(`${this.urlEndPoint}/${id}`, { headers: this.addAuthorizationHeader() })
+    return this.http.delete<Client>(`${this.urlEndPoint}/${id}`)
       .pipe(catchError(e => {
-
-        if (this.isAuthorized(e)) {
-          return throwError(e);
+        if(e.error.message){
+          console.error(e.error.message);
         }
-
-        console.error(e.error.message);
         this.toastrService.error(`Client operation in backend with error: ${e.error.message},${e.error.error}`, 'Delete operation');
         return throwError(e);
       }));
@@ -178,24 +136,18 @@ export class ClientService {
     formData.append('file', file);
     formData.append('id', id);
 
-    let httpHeaders = new HttpHeaders();
-    const token = this.authService.token;
-    if (token != null) {
-      httpHeaders = httpHeaders.append('Authorization', `Bearer ${token}`);
-    }
+    //let httpHeaders = new HttpHeaders();
+    //const token = this.authService.token;
+    //if (token != null) {
+    //httpHeaders = httpHeaders.append('Authorization', `Bearer ${token}`);
+    //}
 
     const req = new HttpRequest('POST', `${this.urlEndPoint}/upload/`, formData, {
       reportProgress: true,
-      headers: httpHeaders
+      //headers: httpHeaders
     });
 
-    return this.http.request(req)
-      .pipe(
-        catchError(e => {
-          this.isAuthorized(e);
-          return throwError(e);
-        })
-      );
+    return this.http.request(req);
 
     // pipe(
     //   map((response: any) => response.client as Client),
@@ -214,12 +166,7 @@ export class ClientService {
 
 
   getRegions(): Observable<Region[]> {
-    return this.http.get<Region[]>(this.urlEndPoint + '/region', { headers: this.addAuthorizationHeader() }).pipe(
-      catchError(e => {
-        this.isAuthorized(e);
-        return throwError(e);
-      })
-    );
+    return this.http.get<Region[]>(this.urlEndPoint + '/region');
   }
 
 }
